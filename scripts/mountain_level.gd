@@ -6,7 +6,9 @@ const PlayerScene := preload("res://scenes/player.tscn")
 const WaterScene := preload("res://scenes/water.tscn")
 const CheckpointScene := preload("res://scenes/checkpoint.tscn")
 const HouseScene := preload("res://scenes/goal_house.tscn")
-const BG_TEX := preload("res://assets/tiles/background_color_trees.png")
+const BG_TREES := preload("res://assets/tiles/bg_color_trees.png")
+const BG_CLOUDS := preload("res://assets/tiles/bg_clouds.png")
+const JumpRoutes := preload("res://scripts/jump_route_validator.gd")
 
 @onready var food_label: Label = $UI/FoodLabel
 @onready var hint_label: Label = $UI/Hint
@@ -42,51 +44,87 @@ func _process(_delta: float) -> void:
 
 
 func _build_mountain() -> void:
-	_add_water(-2, 41, 40, 8)
+	_add_water(-2, 41, 54, 8)
 
-	# Foot of the mountain: walk, jump, double jump.
-	_add_platform(1, 40, 14, 5, GrassPlatform.Terrain.GRASS)
+	# Spec: id, tx, ty, w, h, terrain, group. Path is the intended route.
+	# Same data is built and fed to JumpRouteValidator (ceiling / gap checks).
+	# 2-tile stairs go the same way; reverse only with a 3-tile double jump, or
+	# after 6 tiles of rise, so the ledge 4 tiles up never covers the takeoff.
+	var grass := GrassPlatform.Terrain.GRASS
+	var dirt := GrassPlatform.Terrain.DIRT
+	var stone := GrassPlatform.Terrain.STONE
+	var specs: Array = [
+		{id = "g0", tx = 1, ty = 40, w = 12, h = 5, t = grass, g = ""},
+		{id = "g1", tx = 15, ty = 40, w = 5, h = 5, t = grass, g = ""},
+		{id = "g2", tx = 23, ty = 40, w = 12, h = 5, t = grass, g = ""},
+		{id = "c1", tx = 30, ty = 38, w = 5, h = 1, t = grass, g = ""},
+		{id = "c2", tx = 35, ty = 36, w = 5, h = 1, t = grass, g = ""},
+		{id = "c3", tx = 30, ty = 33, w = 6, h = 1, t = grass, g = ""},
+		{id = "c4", tx = 24, ty = 31, w = 7, h = 1, t = grass, g = ""},
+		{id = "d0", tx = 1, ty = 29, w = 24, h = 1, t = dirt, g = ""},
+		{id = "br", tx = 26, ty = 29, w = 3, h = 1, t = dirt, g = "temp_tree_bridge"},
+		{id = "u1", tx = 29, ty = 27, w = 6, h = 1, t = dirt, g = ""},
+		{id = "u2", tx = 34, ty = 25, w = 6, h = 1, t = stone, g = ""},
+		{id = "s1", tx = 39, ty = 23, w = 6, h = 1, t = stone, g = ""},
+		{id = "s2", tx = 41, ty = 21, w = 6, h = 1, t = stone, g = ""},
+		{id = "s3", tx = 32, ty = 19, w = 7, h = 1, t = stone, g = ""},
+		{id = "s4", tx = 27, ty = 17, w = 6, h = 1, t = stone, g = "temp_tree_stairs"},
+		{id = "s5", tx = 22, ty = 15, w = 6, h = 1, t = stone, g = "temp_tree_stairs"},
+		{id = "s6", tx = 16, ty = 13, w = 7, h = 1, t = stone, g = "temp_tree_stairs"},
+		{id = "s7", tx = 22, ty = 10, w = 7, h = 1, t = stone, g = ""},
+		{id = "s8", tx = 28, ty = 8, w = 7, h = 1, t = stone, g = ""},
+		{id = "s9", tx = 34, ty = 6, w = 7, h = 1, t = stone, g = ""},
+		{id = "top", tx = 40, ty = 4, w = 8, h = 1, t = stone, g = ""},
+	]
+	var path: Array = [
+		"g0", "g1", "g2", "c1", "c2", "c3", "c4", "d0", "br",
+		"u1", "u2", "s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "top",
+	]
+
+	for spec in specs:
+		_add_platform(spec.tx, spec.ty, spec.w, spec.h, spec.t, spec.g)
+
 	_add_checkpoint(3, 40, 0, true)
-	_add_platform(17, 40, 6, 5, GrassPlatform.Terrain.GRASS)
-	_add_platform(27, 40, 8, 5, GrassPlatform.Terrain.GRASS)
-	_add_checkpoint(29, 40, 1)
+	_add_checkpoint(26, 40, 1)
+	_add_checkpoint(3, 29, 2)
+	_add_checkpoint(17, 13, 3)
+	_add_house(42, 4)
 
-	# Climb left. Temporary platforms stand in for later tree puzzles.
-	_add_platform(22, 37, 3, 1, GrassPlatform.Terrain.GRASS)
-	_add_platform(16, 34, 4, 1, GrassPlatform.Terrain.GRASS)
-	_add_platform(8, 31, 4, 1, GrassPlatform.Terrain.DIRT)
-	_add_platform(1, 28, 11, 3, GrassPlatform.Terrain.DIRT)
-	_add_checkpoint(3, 28, 2)
-	_add_platform(13, 28, 3, 1, GrassPlatform.Terrain.DIRT, "temp_tree_bridge")
-	_add_platform(18, 28, 10, 3, GrassPlatform.Terrain.DIRT)
-
-	_add_platform(25, 25, 3, 1, GrassPlatform.Terrain.DIRT)
-	_add_platform(19, 22, 3, 1, GrassPlatform.Terrain.STONE)
-	_add_platform(16, 20, 2, 1, GrassPlatform.Terrain.STONE, "temp_tree_stairs")
-	_add_platform(13, 18, 2, 1, GrassPlatform.Terrain.STONE, "temp_tree_stairs")
-	_add_platform(10, 16, 2, 1, GrassPlatform.Terrain.STONE, "temp_tree_stairs")
-	_add_platform(1, 15, 10, 3, GrassPlatform.Terrain.STONE)
-	_add_checkpoint(3, 15, 3)
-
-	# Mix stretch to the friend's house.
-	_add_platform(13, 12, 3, 1, GrassPlatform.Terrain.STONE)
-	_add_platform(19, 9, 4, 1, GrassPlatform.Terrain.STONE)
-	_add_platform(14, 6, 3, 1, GrassPlatform.Terrain.STONE)
-	_add_platform(20, 3, 12, 4, GrassPlatform.Terrain.STONE)
-	_add_house(27, 3)
+	var errors := JumpRoutes.validate_path(specs, path)
+	if errors.is_empty():
+		print("Jump routes OK (%d hops)" % (path.size() - 1))
+	else:
+		for err in errors:
+			push_warning("Jump route: " + err)
 
 
 func _add_background() -> void:
-	var parallax := Parallax2D.new()
-	parallax.repeat_size = Vector2(256, 256)
-	parallax.scroll_scale = Vector2(0.25, 0.18)
-	parallax.z_index = -8
-	var sprite := Sprite2D.new()
-	sprite.texture = BG_TEX
-	sprite.centered = false
-	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	parallax.add_child(sprite)
-	add_child(parallax)
+	var layer := CanvasLayer.new()
+	layer.layer = -1
+	add_child(layer)
+
+	var sky := ColorRect.new()
+	sky.color = Color(0.62, 0.84, 0.96, 1)
+	sky.set_anchors_preset(Control.PRESET_FULL_RECT)
+	sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(sky)
+
+	var trees := TextureRect.new()
+	trees.texture = BG_TREES
+	trees.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	trees.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	trees.set_anchors_preset(Control.PRESET_FULL_RECT)
+	trees.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(trees)
+
+	var clouds := TextureRect.new()
+	clouds.texture = BG_CLOUDS
+	clouds.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	clouds.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	clouds.modulate = Color(1, 1, 1, 0.45)
+	clouds.set_anchors_preset(Control.PRESET_FULL_RECT)
+	clouds.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(clouds)
 
 
 func _add_platform(tx: int, ty: int, w: int, h: int, terrain: GrassPlatform.Terrain, extra_group: String = "") -> void:
@@ -125,7 +163,7 @@ func _add_house(tx: int, ty: int) -> void:
 func _limit_camera(player: Node) -> void:
 	var camera: Camera2D = player.get_node("Camera2D")
 	camera.limit_left = 0
-	camera.limit_right = 36 * TILE
+	camera.limit_right = 52 * TILE
 	camera.limit_top = -2 * TILE
 	camera.limit_bottom = 48 * TILE
 	camera.limit_smoothed = true
