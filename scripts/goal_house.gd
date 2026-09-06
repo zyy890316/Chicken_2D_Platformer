@@ -5,7 +5,8 @@ const TEX_DOOR := preload("res://assets/tiles/door_closed.png")
 const TEX_DOOR_TOP := preload("res://assets/tiles/door_closed_top.png")
 const TEX_WINDOW := preload("res://assets/tiles/window.png")
 const TEX_STONE := preload("res://assets/tiles/terrain_stone_block.png")
-const TEX_FRIEND := preload("res://assets/tiles/friend_idle.png")
+const TEX_FRIEND := preload("res://assets/game/hedgehog.png")
+const FRIEND_HEIGHT := 58.0
 
 
 func _ready() -> void:
@@ -32,15 +33,17 @@ func _build() -> void:
 	var friend := Sprite2D.new()
 	friend.texture = TEX_FRIEND
 	friend.centered = true
-	friend.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	friend.position = Vector2(-28, -40)
-	friend.scale = Vector2(0.55, 0.55)
+	friend.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	var friend_scale := FRIEND_HEIGHT / float(TEX_FRIEND.get_height())
+	friend.scale = Vector2(friend_scale, friend_scale)
+	friend.position = Vector2(-38, -FRIEND_HEIGHT * 0.5)
 	add_child(friend)
 
+	# Touch the hedgehog or the door to win.
 	var shape := RectangleShape2D.new()
-	shape.size = Vector2(TILE, 2 * TILE)
+	shape.size = Vector2(3 * TILE + 72, 2 * TILE)
 	$CollisionShape2D.shape = shape
-	$CollisionShape2D.position = Vector2(TILE + TILE * 0.5, -TILE)
+	$CollisionShape2D.position = Vector2(TILE + 4, -TILE)
 
 
 func _add_sprite(texture: Texture2D, pos: Vector2) -> void:
