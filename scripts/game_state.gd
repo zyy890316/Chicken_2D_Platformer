@@ -3,6 +3,7 @@ extends Node
 signal died
 signal won
 signal checkpoint_reached(index: int)
+signal level_reset
 
 var checkpoint_index := 0
 var checkpoint_position := Vector2.ZERO
@@ -17,6 +18,7 @@ func reset_for_level(spawn_position: Vector2) -> void:
 	food_score = 0
 	is_won = false
 	_busy = false
+	level_reset.emit()
 
 
 func activate_checkpoint(index: int, spawn_position: Vector2) -> bool:
@@ -55,6 +57,7 @@ func win_level() -> void:
 
 
 func restart_level() -> void:
+	reset_for_level(checkpoint_position)
 	get_tree().reload_current_scene()
 
 

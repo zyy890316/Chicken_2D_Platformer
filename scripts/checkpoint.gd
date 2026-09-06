@@ -18,9 +18,13 @@ func _ready() -> void:
 	collision_layer = 0
 	collision_mask = 2
 	monitorable = false
-	if start_active or index <= GameState.checkpoint_index:
-		_set_active(true)
+	GameState.level_reset.connect(_sync_from_state)
+	_sync_from_state()
 	body_entered.connect(_on_body_entered)
+
+
+func _sync_from_state() -> void:
+	_set_active(start_active or index <= GameState.checkpoint_index)
 
 
 func _process(delta: float) -> void:
@@ -42,4 +46,5 @@ func _set_active(value: bool) -> void:
 	if _active:
 		sprite.texture = TEX_A
 	else:
+		_wave_time = 0.0
 		sprite.texture = TEX_OFF

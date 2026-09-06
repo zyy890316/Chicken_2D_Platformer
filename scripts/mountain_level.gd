@@ -19,15 +19,17 @@ var _can_restart := false
 
 
 func _ready() -> void:
+	var spawn := _tile(5, 40) + Vector2(0, -36)
+	# Autoload keeps last-run checkpoint_index across reload_current_scene.
+	# Reset before flags enter the tree so they do not all unfurl.
+	GameState.reset_for_level(spawn)
 	_add_background()
 	_build_mountain()
-	var spawn := _tile(5, 40) + Vector2(0, -36)
 	var player: CharacterBody2D = PlayerScene.instantiate()
 	player.position = spawn
 	player.kill_y = 49 * TILE
 	add_child(player)
 	_limit_camera(player)
-	GameState.reset_for_level(spawn)
 	GameState.won.connect(_on_won)
 	GameState.checkpoint_reached.connect(_on_checkpoint)
 	food_label.text = "Food: 0"
