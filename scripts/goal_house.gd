@@ -3,9 +3,9 @@ extends Area2D
 const TILE := 64
 const TEX_HOUSE := preload("res://assets/game/house.png")
 const TEX_FRIEND := preload("res://assets/game/hedgehog.png")
-const HOUSE_HEIGHT := 176.0
+const HOUSE_HEIGHT := 200.0
 const FRIEND_HEIGHT := 58.0
-const GROUND_OVERLAP := 10.0
+const GROUND_OVERLAP := 8.0
 
 
 func _ready() -> void:
