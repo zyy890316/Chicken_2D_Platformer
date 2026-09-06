@@ -1,12 +1,11 @@
 extends Area2D
 
 const TILE := 64
-const TEX_DOOR := preload("res://assets/tiles/door_closed.png")
-const TEX_DOOR_TOP := preload("res://assets/tiles/door_closed_top.png")
-const TEX_WINDOW := preload("res://assets/tiles/window.png")
-const TEX_STONE := preload("res://assets/tiles/terrain_stone_block.png")
+const TEX_HOUSE := preload("res://assets/game/house.png")
 const TEX_FRIEND := preload("res://assets/game/hedgehog.png")
+const HOUSE_HEIGHT := 176.0
 const FRIEND_HEIGHT := 58.0
+const GROUND_OVERLAP := 10.0
 
 
 func _ready() -> void:
@@ -19,16 +18,16 @@ func _ready() -> void:
 
 
 func _build() -> void:
-	# House sits on the platform: 3 tiles wide, 3 tiles tall, growing upward.
-	_add_sprite(TEX_STONE, Vector2(0, -3 * TILE))
-	_add_sprite(TEX_WINDOW, Vector2(TILE, -3 * TILE))
-	_add_sprite(TEX_STONE, Vector2(2 * TILE, -3 * TILE))
-	_add_sprite(TEX_STONE, Vector2(0, -2 * TILE))
-	_add_sprite(TEX_DOOR_TOP, Vector2(TILE, -2 * TILE))
-	_add_sprite(TEX_STONE, Vector2(2 * TILE, -2 * TILE))
-	_add_sprite(TEX_STONE, Vector2(0, -TILE))
-	_add_sprite(TEX_DOOR, Vector2(TILE, -TILE))
-	_add_sprite(TEX_STONE, Vector2(2 * TILE, -TILE))
+	var house_scale := HOUSE_HEIGHT / float(TEX_HOUSE.get_height())
+	var house_w := float(TEX_HOUSE.get_width()) * house_scale
+
+	var house := Sprite2D.new()
+	house.texture = TEX_HOUSE
+	house.centered = false
+	house.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	house.scale = Vector2(house_scale, house_scale)
+	house.position = Vector2(0, -HOUSE_HEIGHT + GROUND_OVERLAP)
+	add_child(house)
 
 	var friend := Sprite2D.new()
 	friend.texture = TEX_FRIEND
@@ -36,23 +35,15 @@ func _build() -> void:
 	friend.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	var friend_scale := FRIEND_HEIGHT / float(TEX_FRIEND.get_height())
 	friend.scale = Vector2(friend_scale, friend_scale)
-	friend.position = Vector2(-38, -FRIEND_HEIGHT * 0.5)
+	friend.z_index = 1
+	friend.position = Vector2(-36, -FRIEND_HEIGHT * 0.5)
 	add_child(friend)
 
-	# Touch the hedgehog or the door to win.
+	var extra_left := 64.0
 	var shape := RectangleShape2D.new()
-	shape.size = Vector2(3 * TILE + 72, 2 * TILE)
+	shape.size = Vector2(house_w + extra_left, TILE * 1.5)
 	$CollisionShape2D.shape = shape
-	$CollisionShape2D.position = Vector2(TILE + 4, -TILE)
-
-
-func _add_sprite(texture: Texture2D, pos: Vector2) -> void:
-	var sprite := Sprite2D.new()
-	sprite.texture = texture
-	sprite.centered = false
-	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	sprite.position = pos
-	add_child(sprite)
+	$CollisionShape2D.position = Vector2(house_w * 0.5 - extra_left * 0.5, -TILE * 0.75)
 
 
 func _on_body_entered(body: Node2D) -> void:
