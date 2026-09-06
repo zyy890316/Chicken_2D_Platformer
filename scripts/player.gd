@@ -13,12 +13,17 @@ var coyote_timer := 0.0
 var jump_buffer_timer := 0.0
 var base_scale := Vector2.ONE
 var squash_tween: Tween
+var control_enabled := true
+var hazard_cooldown := 0.0
+var kill_y := 100000.0
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
+@onready var camera: Camera2D = $Camera2D
 
 
 func _ready() -> void:
+	add_to_group("player")
 	_fit_sprite()
 
 
@@ -35,7 +40,42 @@ func _fit_sprite() -> void:
 	collision_shape.position = Vector2(0, 4)
 
 
+func can_take_hazard() -> bool:
+	return control_enabled and hazard_cooldown <= 0.0 and not GameState.is_won
+
+
+func begin_death() -> void:
+	control_enabled = false
+	velocity = Vector2.ZERO
+
+
+func respawn(spawn_position: Vector2) -> void:
+	global_position = spawn_position
+	velocity = Vector2.ZERO
+	extra_jumps_left = 1
+	coyote_timer = 0.0
+	jump_buffer_timer = 0.0
+	control_enabled = true
+	hazard_cooldown = 0.9
+	camera.position_smoothing_enabled = false
+	camera.reset_smoothing()
+	await get_tree().physics_frame
+	camera.reset_smoothing()
+	camera.position_smoothing_enabled = true
+
+
 func _physics_process(delta: float) -> void:
+	if hazard_cooldown > 0.0:
+		hazard_cooldown = maxf(0.0, hazard_cooldown - delta)
+		sprite.modulate.a = 0.4 if int(hazard_cooldown * 18.0) % 2 == 0 else 1.0
+	else:
+		sprite.modulate.a = 1.0
+
+	if not control_enabled:
+		velocity = Vector2.ZERO
+		move_and_slide()
+		return
+
 	var gravity := float(ProjectSettings.get_setting("physics/2d/default_gravity"))
 	var on_floor := is_on_floor()
 	if on_floor:
@@ -73,6 +113,9 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	if is_on_floor() and not was_on_floor:
 		_play_squash(1.22, 0.78, 0.14)
+
+	if global_position.y > kill_y:
+		GameState.kill_player()
 
 
 func _jump(jump_velocity: float, is_double: bool) -> void:

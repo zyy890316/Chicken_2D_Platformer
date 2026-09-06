@@ -1,13 +1,23 @@
 class_name GrassPlatform
 extends StaticBody2D
 
+enum Terrain { GRASS, DIRT, STONE }
+
 const TILE := 64
+const TEX_TOP := {
+	Terrain.GRASS: preload("res://assets/tiles/terrain_grass_block_top.png"),
+	Terrain.DIRT: preload("res://assets/tiles/terrain_dirt_block_top.png"),
+	Terrain.STONE: preload("res://assets/tiles/terrain_stone_block_top.png"),
+}
+const TEX_FILL := {
+	Terrain.GRASS: preload("res://assets/tiles/terrain_grass_block.png"),
+	Terrain.DIRT: preload("res://assets/tiles/terrain_dirt_block.png"),
+	Terrain.STONE: preload("res://assets/tiles/terrain_stone_block.png"),
+}
 
 @export var tiles_x: int = 4
 @export var tiles_y: int = 1
-
-const TEX_TOP := preload("res://assets/tiles/terrain_grass_block_top.svg")
-const TEX_FILL := preload("res://assets/tiles/terrain_grass_block.svg")
+@export var terrain: Terrain = Terrain.GRASS
 
 
 func _ready() -> void:
@@ -21,10 +31,12 @@ func _build() -> void:
 	collision.shape = shape
 	collision.position = shape.size * 0.5
 
+	var top: Texture2D = TEX_TOP[terrain]
+	var fill: Texture2D = TEX_FILL[terrain]
 	for y in tiles_y:
 		for x in tiles_x:
 			var sprite := Sprite2D.new()
-			sprite.texture = TEX_TOP if y == 0 else TEX_FILL
+			sprite.texture = top if y == 0 else fill
 			sprite.centered = false
 			sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 			sprite.position = Vector2(x * TILE, y * TILE)

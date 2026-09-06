@@ -5,13 +5,19 @@ config_version=5
 
 config/name="Chicken 2D Platformer"
 config/description="A chick climbs up the mountain to a friend's house."
-run/main_scene="res://scenes/test_level.tscn"
+run/main_scene="res://scenes/mountain_level.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
 
 InputBinds="*res://scripts/input_binds.gd"
+GameState="*res://scripts/game_state.gd"
+
+[layer_names]
+
+2d_physics/layer_1="world"
+2d_physics/layer_2="player"
 
 [display]
 
