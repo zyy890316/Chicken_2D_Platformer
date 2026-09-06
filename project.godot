@@ -1,0 +1,32 @@
+; Engine configuration file.
+config_version=5
+
+[application]
+
+config/name="Chicken 2D Platformer"
+config/description="A chick climbs up the mountain to a friend's house."
+run/main_scene="res://scenes/test_level.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+config/icon="res://icon.svg"
+
+[autoload]
+
+InputBinds="*res://scripts/input_binds.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[physics]
+
+2d/default_gravity=2000.0
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=1
+environment/defaults/default_clear_color=Color(0.55, 0.82, 0.95, 1)
