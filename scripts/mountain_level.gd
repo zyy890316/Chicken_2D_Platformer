@@ -11,6 +11,7 @@ const FruitPlantScript := preload("res://scripts/fruit_plant.gd")
 const BG_TREES := preload("res://assets/tiles/bg_color_trees.png")
 const BG_CLOUDS := preload("res://assets/tiles/bg_clouds.png")
 const JumpRoutes := preload("res://scripts/jump_route_validator.gd")
+const SpeechBubbleScene := preload("res://scenes/speech_bubble.tscn")
 
 @onready var food_label: Label = $UI/FoodLabel
 @onready var hint_label: Label = $UI/Hint
@@ -32,6 +33,7 @@ func _ready() -> void:
 	player.kill_y = 49 * TILE
 	add_child(player)
 	_limit_camera(player)
+	GameState.ending_started.connect(_on_ending_started)
 	GameState.won.connect(_on_won)
 	GameState.checkpoint_reached.connect(_on_checkpoint)
 	food_label.text = "Food: %d/%d" % [GameState.food_score, GameState.food_total]
@@ -208,6 +210,52 @@ func _on_checkpoint(index: int) -> void:
 	tween.tween_callback(func() -> void:
 		hint_label.text = "Jump through trees or walk through bushes for food."
 	)
+
+
+func _on_ending_started() -> void:
+	hint_label.text = ""
+	var player := GameState.get_player()
+	var friend := get_tree().get_first_node_in_group("friend") as Node2D
+	if player != null and friend != null:
+		var look_right := friend.global_position.x >= player.global_position.x
+		player.facing = 1 if look_right else -1
+		player.sprite.flip_h = not look_right
+
+	var chick_line := "I came to visit you!"
+	if GameState.food_score == 1:
+		chick_line = "I brought you a berry!"
+	elif GameState.food_score > 1:
+		chick_line = "I brought you some berries!"
+
+	await _speak(player, chick_line, Vector2(0, -58))
+	await _speak(friend, "Thank you!", Vector2(0, -42))
+	GameState.show_win_screen()
+
+
+func _speak(speaker: Node2D, text: String, offset: Vector2) -> void:
+	if speaker == null or not is_instance_valid(speaker):
+		return
+	var bubble := SpeechBubbleScene.instantiate()
+	$UI.add_child(bubble)
+	bubble.follow(speaker, text, offset)
+	await _await_advance(2.5)
+	if is_instance_valid(bubble):
+		var fade := create_tween()
+		fade.tween_property(bubble, "modulate:a", 0.0, 0.12)
+		await fade.finished
+		bubble.queue_free()
+
+
+func _await_advance(seconds: float) -> void:
+	var elapsed := 0.0
+	while elapsed < seconds:
+		await get_tree().process_frame
+		elapsed += get_process_delta_time()
+		if elapsed > 0.4 and (
+			Input.is_action_just_pressed("jump")
+			or Input.is_action_just_pressed("restart")
+		):
+			break
 
 
 func _on_won() -> void:

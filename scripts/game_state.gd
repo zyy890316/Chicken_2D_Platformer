@@ -2,6 +2,7 @@ extends Node
 
 signal died
 signal won
+signal ending_started
 signal checkpoint_reached(index: int)
 signal level_reset
 signal plants_restored
@@ -75,10 +76,18 @@ func win_level() -> void:
 	if is_won or _busy:
 		return
 	is_won = true
+	_busy = true
 	var player := get_player()
 	if player != null:
 		player.control_enabled = false
 		player.velocity = Vector2.ZERO
+	ending_started.emit()
+
+
+func show_win_screen() -> void:
+	if not is_won:
+		return
+	_busy = false
 	won.emit()
 
 

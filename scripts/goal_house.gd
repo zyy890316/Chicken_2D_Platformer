@@ -30,6 +30,7 @@ func _build() -> void:
 	add_child(house)
 
 	var friend := Sprite2D.new()
+	friend.name = "Friend"
 	friend.texture = TEX_FRIEND
 	friend.centered = true
 	friend.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
@@ -37,6 +38,7 @@ func _build() -> void:
 	friend.scale = Vector2(friend_scale, friend_scale)
 	friend.z_index = 1
 	friend.position = Vector2(-36, -FRIEND_HEIGHT * 0.5)
+	friend.add_to_group("friend")
 	add_child(friend)
 
 	var extra_left := 64.0
