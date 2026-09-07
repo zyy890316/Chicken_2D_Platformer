@@ -34,7 +34,7 @@ theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_font_sizes/font_size = 18
 text = "A/D move, Space jump (again in air to flutter).
-Climb to your friend's house. Don't fall in the water."
+Jump through trees or walk through bushes for food."
 
 [node name="WinPanel" type="ColorRect" parent="UI"]
 visible = false

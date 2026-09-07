@@ -6,6 +6,8 @@ const PlayerScene := preload("res://scenes/player.tscn")
 const WaterScene := preload("res://scenes/water.tscn")
 const CheckpointScene := preload("res://scenes/checkpoint.tscn")
 const HouseScene := preload("res://scenes/goal_house.tscn")
+const PlantScene := preload("res://scenes/fruit_plant.tscn")
+const FruitPlantScript := preload("res://scripts/fruit_plant.gd")
 const BG_TREES := preload("res://assets/tiles/bg_color_trees.png")
 const BG_CLOUDS := preload("res://assets/tiles/bg_clouds.png")
 const JumpRoutes := preload("res://scripts/jump_route_validator.gd")
@@ -92,6 +94,15 @@ func _build_mountain() -> void:
 	_add_checkpoint(17, 13, 3)
 	_add_house(42, 4)
 
+	_add_plant("bush_start", FruitPlantScript.Kind.BUSH, 8, 40)
+	_add_plant("tree_start", FruitPlantScript.Kind.TREE, 10, 40)
+	_add_plant("tree_g2", FruitPlantScript.Kind.TREE, 32, 40)
+	_add_plant("bush_d0", FruitPlantScript.Kind.BUSH, 10, 29)
+	_add_plant("tree_d0", FruitPlantScript.Kind.TREE, 18, 29)
+	_add_plant("tree_s3", FruitPlantScript.Kind.TREE, 35, 19)
+	_add_plant("bush_s6", FruitPlantScript.Kind.BUSH, 20, 13)
+	_add_plant("bush_s8", FruitPlantScript.Kind.BUSH, 30, 8)
+
 	var errors := JumpRoutes.validate_path(specs, path)
 	if errors.is_empty():
 		print("Jump routes OK (%d hops)" % (path.size() - 1))
@@ -162,6 +173,14 @@ func _add_house(tx: int, ty: int) -> void:
 	add_child(house)
 
 
+func _add_plant(plant_id: String, kind: int, tx: int, ty: int) -> void:
+	var plant := PlantScene.instantiate()
+	plant.plant_id = plant_id
+	plant.kind = kind
+	plant.position = _tile(tx, ty) + Vector2(TILE * 0.5, 0)
+	add_child(plant)
+
+
 func _limit_camera(player: Node) -> void:
 	var camera: Camera2D = player.get_node("Camera2D")
 	camera.limit_left = 0
@@ -180,7 +199,7 @@ func _on_checkpoint(index: int) -> void:
 	var tween := create_tween()
 	tween.tween_interval(1.6)
 	tween.tween_callback(func() -> void:
-		hint_label.text = "Climb to your friend's house. Don't fall in the water."
+		hint_label.text = "Jump through trees or walk through bushes for food."
 	)
 
 
