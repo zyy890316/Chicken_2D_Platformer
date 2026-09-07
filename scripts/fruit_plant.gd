@@ -67,3 +67,4 @@ func _on_body_entered(body: Node2D) -> void:
 		return
 	if GameState.collect_food(plant_id):
 		_sync_from_state()
+		SfxPlayer.play_pickup()

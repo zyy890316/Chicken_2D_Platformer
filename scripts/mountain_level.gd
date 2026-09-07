@@ -17,6 +17,8 @@ const SpeechBubbleScene := preload("res://scenes/speech_bubble.tscn")
 @onready var hint_label: Label = $UI/Hint
 @onready var win_panel: ColorRect = $UI/WinPanel
 @onready var win_score: Label = $UI/WinPanel/Center/Panel/VBox/Score
+@onready var credits_panel: ColorRect = $UI/CreditsPanel
+@onready var credits_lines: Label = $UI/CreditsPanel/Center/Panel/VBox/Lines
 
 var _can_restart := false
 
@@ -38,6 +40,8 @@ func _ready() -> void:
 	GameState.checkpoint_reached.connect(_on_checkpoint)
 	food_label.text = "Food: %d/%d" % [GameState.food_score, GameState.food_total]
 	win_panel.visible = false
+	credits_panel.visible = false
+	_apply_credits_font()
 
 
 func _process(_delta: float) -> void:
@@ -261,6 +265,16 @@ func _await_advance(seconds: float) -> void:
 func _on_won() -> void:
 	win_score.text = "Food: %d/%d" % [GameState.food_score, GameState.food_total]
 	win_panel.visible = true
+	credits_panel.visible = false
 	hint_label.text = ""
-	await get_tree().create_timer(0.5).timeout
+	await _await_advance(2.0)
+	win_panel.visible = false
+	credits_panel.visible = true
+	await get_tree().create_timer(0.8).timeout
 	_can_restart = true
+
+
+func _apply_credits_font() -> void:
+	var font := SystemFont.new()
+	font.font_names = PackedStringArray(["Microsoft YaHei", "Segoe UI", "Noto Sans SC"])
+	credits_lines.add_theme_font_override("font", font)

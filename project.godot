@@ -14,6 +14,7 @@ config/icon="res://icon.svg"
 InputBinds="*res://scripts/input_binds.gd"
 GameState="*res://scripts/game_state.gd"
 BgmPlayer="*res://scripts/bgm_player.gd"
+SfxPlayer="*res://scripts/sfx_player.gd"
 
 [layer_names]
 
@@ -26,6 +27,8 @@ window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/handheld/orientation=4
+window/energy_saving/keep_screen_on=true
 
 [physics]
 

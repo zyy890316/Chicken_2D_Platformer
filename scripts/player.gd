@@ -127,6 +127,7 @@ func _jump(jump_velocity: float, is_double: bool) -> void:
 		_play_squash(0.86, 1.28, 0.16)
 	else:
 		_play_squash(0.82, 1.22, 0.14)
+	SfxPlayer.play_jump(is_double)
 
 
 func _play_squash(x: float, y: float, duration: float) -> void:

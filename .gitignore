@@ -2,6 +2,7 @@
 *.translation
 .import/
 export_presets.cfg
+build/
 *.apk
 *.aab
 *.ipa
