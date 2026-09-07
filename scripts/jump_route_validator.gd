@@ -21,6 +21,11 @@ const PLAYER_HALF_W := 16.0
 const PLAYER_FEET := 27.0
 const PLAYER_HEAD := 19.0
 const EDGE_MARGIN := 12.0
+## Tree sprite size must match FruitPlant HEIGHT / texture.
+const TREE_HEIGHT := 156.0
+const TREE_TEX_W := 248.0
+const TREE_TEX_H := 353.0
+const TREE_SINK := 12.0
 
 static func single_jump_height() -> float:
 	return JUMP_V * JUMP_V / (2.0 * GRAVITY)
@@ -44,6 +49,58 @@ static func max_air_distance(double_jump: bool) -> float:
 
 static func rect_of(p: Dictionary) -> Rect2:
 	return Rect2(p.tx * TILE, p.ty * TILE, p.w * TILE, p.h * TILE)
+
+
+static func tree_rect(tx: float, ty: int) -> Rect2:
+	var plant_scale := TREE_HEIGHT / TREE_TEX_H
+	var width := TREE_TEX_W * plant_scale
+	var stand := Vector2((tx + 0.5) * TILE, ty * TILE + TREE_SINK)
+	return Rect2(stand.x - width * 0.5, stand.y - TREE_HEIGHT, width, TREE_HEIGHT)
+
+
+static func _stand_platform(tx: float, ty: int, platforms: Array) -> Dictionary:
+	for p in platforms:
+		if int(p.ty) != ty:
+			continue
+		if tx >= float(p.tx) and tx < float(p.tx + p.w):
+			return p
+	return {}
+
+
+static func tree_hits_platform(tx: float, ty: int, platforms: Array) -> String:
+	var canopy := tree_rect(tx, ty)
+	canopy = canopy.grow(-4.0)
+	for p in platforms:
+		if int(p.ty) >= ty:
+			continue
+		if canopy.intersects(rect_of(p)):
+			return str(p.id)
+	return ""
+
+
+static func nudge_tree(tx: float, ty: int, platforms: Array) -> float:
+	if tree_hits_platform(tx, ty, platforms) == "":
+		return tx
+	var stand := _stand_platform(tx, ty, platforms)
+	if stand.is_empty():
+		return tx
+	var min_tx := float(stand.tx) + 0.2
+	var max_tx := float(stand.tx + stand.w) - 1.2
+	var best := tx
+	var best_dist := INF
+	var t := min_tx
+	while t <= max_tx + 0.001:
+		if tree_hits_platform(t, ty, platforms) == "":
+			var d := absf(t - tx)
+			if d < best_dist:
+				best_dist = d
+				best = t
+		t += 0.25
+	if best_dist < INF:
+		print("Tree nudged from tile %.2f to %.2f (was overlapping a platform)" % [tx, best])
+		return best
+	push_warning("Tree at tile %.2f, y=%d still overlaps a platform" % [tx, ty])
+	return tx
 
 
 static func validate_path(platforms: Array, path_ids: Array) -> PackedStringArray:

@@ -15,6 +15,7 @@ const HEIGHT := {
 	Kind.TREE: 156.0,
 	Kind.BUSH: 52.0,
 }
+const GROUND_SINK := 12.0
 
 @export var kind: Kind = Kind.TREE
 @export var plant_id: String = ""
@@ -43,15 +44,15 @@ func _build_visual() -> void:
 	sprite.centered = true
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	sprite.scale = Vector2(plant_scale, plant_scale)
-	sprite.position = Vector2(0, -plant_h * 0.5)
+	sprite.position = Vector2(0, -plant_h * 0.5 + GROUND_SINK)
 
 	var shape := RectangleShape2D.new()
 	if kind == Kind.TREE:
 		shape.size = Vector2(fruit.get_width() * plant_scale * 0.72, plant_h * 0.55)
-		collision.position = Vector2(0, -plant_h * 0.70)
+		collision.position = Vector2(0, -plant_h * 0.70 + GROUND_SINK)
 	else:
 		shape.size = Vector2(fruit.get_width() * plant_scale * 0.88, plant_h * 0.82)
-		collision.position = Vector2(0, -plant_h * 0.48)
+		collision.position = Vector2(0, -plant_h * 0.48 + GROUND_SINK)
 	collision.shape = shape
 
 

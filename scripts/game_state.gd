@@ -9,6 +9,7 @@ signal plants_restored
 var checkpoint_index := 0
 var checkpoint_position := Vector2.ZERO
 var food_score := 0
+var food_total := 0
 var is_won := false
 var _busy := false
 var _collected: Dictionary = {}
@@ -20,6 +21,7 @@ func reset_for_level(spawn_position: Vector2) -> void:
 	checkpoint_index = 0
 	checkpoint_position = spawn_position
 	food_score = 0
+	food_total = 0
 	is_won = false
 	_busy = false
 	_collected.clear()

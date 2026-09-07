@@ -34,12 +34,12 @@ func _ready() -> void:
 	_limit_camera(player)
 	GameState.won.connect(_on_won)
 	GameState.checkpoint_reached.connect(_on_checkpoint)
-	food_label.text = "Food: 0"
+	food_label.text = "Food: %d/%d" % [GameState.food_score, GameState.food_total]
 	win_panel.visible = false
 
 
 func _process(_delta: float) -> void:
-	food_label.text = "Food: %d" % GameState.food_score
+	food_label.text = "Food: %d/%d" % [GameState.food_score, GameState.food_total]
 	if _can_restart and GameState.is_won and (
 		Input.is_action_just_pressed("restart")
 		or Input.is_action_just_pressed("jump")
@@ -94,14 +94,21 @@ func _build_mountain() -> void:
 	_add_checkpoint(17, 13, 3)
 	_add_house(42, 4)
 
-	_add_plant("bush_start", FruitPlantScript.Kind.BUSH, 8, 40)
-	_add_plant("tree_start", FruitPlantScript.Kind.TREE, 10, 40)
-	_add_plant("tree_g2", FruitPlantScript.Kind.TREE, 32, 40)
-	_add_plant("bush_d0", FruitPlantScript.Kind.BUSH, 10, 29)
-	_add_plant("tree_d0", FruitPlantScript.Kind.TREE, 18, 29)
-	_add_plant("tree_s3", FruitPlantScript.Kind.TREE, 35, 19)
-	_add_plant("bush_s6", FruitPlantScript.Kind.BUSH, 20, 13)
-	_add_plant("bush_s8", FruitPlantScript.Kind.BUSH, 30, 8)
+	var plants: Array = [
+		{id = "bush_start", kind = FruitPlantScript.Kind.BUSH, tx = 8.0, ty = 40},
+		{id = "tree_start", kind = FruitPlantScript.Kind.TREE, tx = 10.0, ty = 40},
+		{id = "tree_g2", kind = FruitPlantScript.Kind.TREE, tx = 32.0, ty = 40},
+		{id = "bush_d0", kind = FruitPlantScript.Kind.BUSH, tx = 10.0, ty = 29},
+		{id = "tree_d0", kind = FruitPlantScript.Kind.TREE, tx = 18.0, ty = 29},
+		{id = "tree_s3", kind = FruitPlantScript.Kind.TREE, tx = 35.0, ty = 19},
+		{id = "bush_s6", kind = FruitPlantScript.Kind.BUSH, tx = 20.0, ty = 13},
+		{id = "bush_s8", kind = FruitPlantScript.Kind.BUSH, tx = 30.0, ty = 8},
+	]
+	for plant in plants:
+		if plant.kind == FruitPlantScript.Kind.TREE:
+			plant.tx = JumpRoutes.nudge_tree(plant.tx, plant.ty, specs)
+		_add_plant(plant.id, plant.kind, plant.tx, plant.ty)
+	GameState.food_total = plants.size()
 
 	var errors := JumpRoutes.validate_path(specs, path)
 	if errors.is_empty():
@@ -173,11 +180,11 @@ func _add_house(tx: int, ty: int) -> void:
 	add_child(house)
 
 
-func _add_plant(plant_id: String, kind: int, tx: int, ty: int) -> void:
+func _add_plant(plant_id: String, kind: int, tx: float, ty: int) -> void:
 	var plant := PlantScene.instantiate()
 	plant.plant_id = plant_id
 	plant.kind = kind
-	plant.position = _tile(tx, ty) + Vector2(TILE * 0.5, 0)
+	plant.position = Vector2((tx + 0.5) * TILE, ty * TILE)
 	add_child(plant)
 
 
@@ -204,7 +211,7 @@ func _on_checkpoint(index: int) -> void:
 
 
 func _on_won() -> void:
-	win_score.text = "Food: %d" % GameState.food_score
+	win_score.text = "Food: %d/%d" % [GameState.food_score, GameState.food_total]
 	win_panel.visible = true
 	hint_label.text = ""
 	await get_tree().create_timer(0.5).timeout
